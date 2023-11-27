@@ -15,6 +15,39 @@ Instructions:
  
 **********************************************************************************************/
 #include <stdio.h>
+#include <string.h>
+
+// semester struct
+typedef struct
+{
+    char sem;
+    int yearStart;
+    int yearEnd;
+    int subjectCount;
+} Semester;
+
+// subject struct
+typedef struct
+{
+    char name[20];
+    float unit;
+    float grade;
+} Subject;
+
+// student struct
+typedef struct
+{
+    char lastName[20];
+    char firstName[20];
+    char middleName[20];
+    int studentNumber;
+    char course[30];
+    int year;
+    int semesterCount;
+    Semester semester[15];
+    Subject subject[15];
+} Student;
+
 
 // function to clear screen
 void clearScreen()
@@ -22,12 +55,106 @@ void clearScreen()
     printf("\033[H\033[J"); // ANSI escape codes to clear screen
 }
 
+// function to calculate student GWA
+float getGWA(Student student, int sem)
+{
+    double totalUnit = 0, totalGradePoint = 0;
+    for (int i = 0; i < student.semester[sem].subjectCount; i++)
+    {
+        totalUnit += student.subject[i].unit;
+        totalGradePoint += (student.subject[i].grade * student.subject[i].unit);
+    }
+    return totalGradePoint / totalUnit;
+}
+
+// function to display Semestral Grade Report
+void printReport(Student student, int sem)
+{
+    printf("\tUNIVERSITY OF THE PHILIPPINES BAGUIO\n");
+    printf("\n");
+    printf("\t\tSEMESTRAL GRADE REPORT\n");
+    printf("\n");
+    printf("Name: %s, %s, %s\n", student.lastName, student.firstName, student.middleName);
+    printf("Student Number: %i\n", student.studentNumber);
+    printf("Course: %s\n", student.course);
+    printf("Year Level: %i\n", student.year);
+    printf("AY: %i-%i\n", student.semester[sem].yearStart, student.semester[sem].yearEnd);
+    printf("Semester: %c\n", student.semester[sem].sem);
+    printf("\n");
+    
+    printf("Subject\t\t\tUnits\tGrade\n");
+    for (int i = 0; i < student.semester[sem].subjectCount; i++)
+    {
+        if (strlen(student.subject[i].name) < 8)
+        {
+            printf("%s\t\t\t%.2f\t%.2f\n", student.subject[i].name, student.subject[i].unit, student.subject[i].grade);
+        }
+        else if (strlen(student.subject[i].name) < 16)
+        {
+            printf("%s\t\t%.2f\t%.2f\n", student.subject[i].name, student.subject[i].unit, student.subject[i].grade);
+        }
+        else
+        {
+            printf("%s\t%.2f\t%.2f\n", student.subject[i].name, student.subject[i].unit, student.subject[i].grade);
+        }
+    }
+
+    double gwa = getGWA(student, sem);
+
+    printf("\n");
+    printf("GWA: %.2f", gwa);
+    printf("\n");
+    
+    if (gwa <= 1.45) 
+    {
+        printf("CONGRATULATIONS!\n");
+        printf("You have qualified as a University Scholar.");
+    }
+    else if (gwa <= 1.75) 
+    {
+        printf("CONGRATULATIONS!\n");
+        printf("You have qualified as a College Scholar.\n");
+    }
+}
+
 int main(void) 
 {
-    // declare variables
+    // declare student
+    Student student;
+
+    // *temp* declare variables
+    strcpy(student.lastName, "Joaquin");
+    strcpy(student.firstName, "Charles Ansbert");
+    strcpy(student.middleName, "Palapas");
+    student.studentNumber = 202235278;
+    strcpy(student.course, "BS Computer Science");
+    student.year = 2;
+
+    student.semester[0].sem = '1';
+    student.semester[0].yearStart = 23;
+    student.semester[0].yearEnd = 24;
+    student.semester[0].subjectCount = 4;
+
+    strcpy(student.subject[0].name, "CMSC 55");
+    student.subject[0].unit = 5;
+    student.subject[0].grade = 1.75;
+
+    strcpy(student.subject[1].name, "HIST I");
+    student.subject[1].unit = 3;
+    student.subject[1].grade = 3;
+
+    strcpy(student.subject[2].name, "MATH 10");
+    student.subject[2].unit = 3;
+    student.subject[2].grade = 1.5;
+
+    strcpy(student.subject[3].name, "MATH 53");
+    student.subject[3].unit = 5;
+    student.subject[3].grade = 2;
+    
+    //declare variables
     char option = 'M';
-    int subjectCount = 5;
-    double gwa = 1.75;
+    student.semesterCount = 0;
+    int sem;
 
     do
     {
@@ -37,6 +164,7 @@ int main(void)
         switch (option)
         {
             case '1':
+                student.semesterCount ++;
                 printf("\tStudent Checklist and Transcript Generator\n");
                 printf("\t\tEnter Semestral Data\n");
                 printf("\n");
@@ -46,7 +174,7 @@ int main(void)
                 printf("\n");
                 
                 printf("Subject\t\tUnits\tGrade\n");
-                for (int i = 0; i < subjectCount; i++)
+                for (int i = 0; i < student.semester[student.semesterCount].subjectCount; i++)
                 {
                     printf("\n");
                 }
@@ -98,39 +226,8 @@ int main(void)
                 break;
 
             case 'R':
-                printf("\tUNIVERSITY OF THE PHILIPPINES BAGUIO\n");
-                printf("\n");
-                printf("\t\tSEMESTRAL GRADE REPORT\n");
-                printf("\n");
-                printf("Name: (NAME, FIRST NAME, MIDDLE NAME)\n");
-                printf("Student Number: (STUDENT NO)\n");
-                printf("Course: (COURSE)\n");
-                printf("Year Level: (YEAR LEVEL)\n");
-                printf("AY: (ACADEMIC YEAR)\n");
-                printf("Semester: (1 / 2 / S)\n");
-                printf("\n");
-                
-                printf("Subject\t\tUnits\tGrade\n");
-                for (int i = 0; i < subjectCount; i++)
-                {
-                    printf("\n");
-                }
-
-                printf("\n");
-                printf("GWA: \n");
-                printf("\n");
-                
-                if (gwa <= 1.45) 
-                {
-                    printf("CONGRATULATIONS!\n");
-                    printf("You have qualified as a University Scholar.");
-                }
-                else if (gwa <= 1.75) 
-                {
-                    printf("CONGRATULATIONS!\n");
-                    printf("You have qualified as a College Scholar.\n");
-                }
-                
+                sem = 0; // *temp*
+                printReport(student, sem);
                 printf("\n");
                 printf("Please Choose Option => \n");
                 printf("\tM - Exit to Main Menu\n");
@@ -141,11 +238,12 @@ int main(void)
                 printf("Invalid Input\n");
         }
 
-        // prompt user to enter the next menu
+        // *temp* prompt user to enter the next menu
         printf("Please Choose Option => ");
         scanf(" %c", &option);
         
-    } while (option != 'X');
+    } 
+    while (option != 'X');
     
 
     return 0;
