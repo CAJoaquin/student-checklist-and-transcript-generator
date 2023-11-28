@@ -17,15 +17,6 @@ Instructions:
 #include <stdio.h>
 #include <string.h>
 
-// semester struct
-typedef struct
-{
-    char sem;
-    int yearStart;
-    int yearEnd;
-    int subjectCount;
-} Semester;
-
 // subject struct
 typedef struct
 {
@@ -33,6 +24,16 @@ typedef struct
     float unit;
     float grade;
 } Subject;
+
+// semester struct
+typedef struct
+{
+    char sem;
+    int yearStart;
+    int yearEnd;
+    int subjectCount;
+    Subject subject[15];
+} Semester;
 
 // student struct
 typedef struct
@@ -45,14 +46,30 @@ typedef struct
     int year;
     int semesterCount;
     Semester semester[15];
-    Subject subject[15];
 } Student;
-
 
 // function to clear screen
 void clearScreen()
 {
     printf("\033[H\033[J"); // ANSI escape codes to clear screen
+}
+
+// function to manipulate cursor position
+void moveToPosition(int line, int column)
+{
+    printf("\033[%i;%iH", line, column);
+}
+
+// function to remove next line
+void cleanString(char *c)
+{
+	for (int i = 0; c[i] != '\0'; i++)
+	{
+		if (c[i] == '\n')
+		{
+			c[i] = '\0';
+		}
+	}
 }
 
 // function to calculate student GWA
@@ -61,8 +78,8 @@ float getGWA(Student student, int sem)
     double totalUnit = 0, totalGradePoint = 0;
     for (int i = 0; i < student.semester[sem].subjectCount; i++)
     {
-        totalUnit += student.subject[i].unit;
-        totalGradePoint += (student.subject[i].grade * student.subject[i].unit);
+        totalUnit += student.semester[sem].subject[i].unit;
+        totalGradePoint += (student.semester[sem].subject[i].grade * student.semester[sem].subject[i].unit);
     }
     return totalGradePoint / totalUnit;
 }
@@ -85,17 +102,17 @@ void printReport(Student student, int sem)
     printf("Subject\t\t\tUnits\tGrade\n");
     for (int i = 0; i < student.semester[sem].subjectCount; i++)
     {
-        if (strlen(student.subject[i].name) < 8)
+        if (strlen(student.semester[sem].subject[i].name) < 8)
         {
-            printf("%s\t\t\t%.2f\t%.2f\n", student.subject[i].name, student.subject[i].unit, student.subject[i].grade);
+            printf("%s\t\t\t%.2f\t%.2f\n", student.semester[sem].subject[i].name, student.semester[sem].subject[i].unit, student.semester[sem].subject[i].grade);
         }
-        else if (strlen(student.subject[i].name) < 16)
+        else if (strlen(student.semester[sem].subject[i].name) < 16)
         {
-            printf("%s\t\t%.2f\t%.2f\n", student.subject[i].name, student.subject[i].unit, student.subject[i].grade);
+            printf("%s\t\t%.2f\t%.2f\n", student.semester[sem].subject[i].name, student.semester[sem].subject[i].unit, student.semester[sem].subject[i].grade);
         }
         else
         {
-            printf("%s\t%.2f\t%.2f\n", student.subject[i].name, student.subject[i].unit, student.subject[i].grade);
+            printf("%s\t%.2f\t%.2f\n", student.semester[sem].subject[i].name, student.semester[sem].subject[i].unit, student.semester[sem].subject[i].grade);
         }
     }
 
@@ -121,40 +138,12 @@ int main(void)
 {
     // declare student
     Student student;
-
-    // *temp* declare variables
-    strcpy(student.lastName, "Joaquin");
-    strcpy(student.firstName, "Charles Ansbert");
-    strcpy(student.middleName, "Palapas");
-    student.studentNumber = 202235278;
-    strcpy(student.course, "BS Computer Science");
-    student.year = 2;
-
-    student.semester[0].sem = '1';
-    student.semester[0].yearStart = 23;
-    student.semester[0].yearEnd = 24;
-    student.semester[0].subjectCount = 4;
-
-    strcpy(student.subject[0].name, "CMSC 55");
-    student.subject[0].unit = 5;
-    student.subject[0].grade = 1.75;
-
-    strcpy(student.subject[1].name, "HIST I");
-    student.subject[1].unit = 3;
-    student.subject[1].grade = 3;
-
-    strcpy(student.subject[2].name, "MATH 10");
-    student.subject[2].unit = 3;
-    student.subject[2].grade = 1.5;
-
-    strcpy(student.subject[3].name, "MATH 53");
-    student.subject[3].unit = 5;
-    student.subject[3].grade = 2;
     
     //declare variables
     char option = 'M';
     student.semesterCount = 0;
-    int sem;
+    int sem = 0;
+    int i, j;
 
     do
     {
@@ -165,23 +154,60 @@ int main(void)
         {
             case '1':
                 student.semesterCount ++;
+                int currentSemester = student.semesterCount - 1;
                 printf("\tStudent Checklist and Transcript Generator\n");
                 printf("\t\tEnter Semestral Data\n");
                 printf("\n");
                 printf("Enter Semester (1 / 2 / S) => \n");
                 printf("Enter Academic Year => 20   to 20  \n");
                 printf("Enter Total Number of Subjects => \n");
+
+                moveToPosition(4, 31);
+                scanf("%c", &student.semester[currentSemester].sem);
+                getchar();
+
+                moveToPosition(5, 26);
+                scanf("%i", &student.semester[currentSemester].yearStart);
+                getchar();
+
+                moveToPosition(5, 34);
+                scanf("%i", &student.semester[currentSemester].yearEnd);
+                getchar();
+
+                moveToPosition(6, 35);
+                scanf("%i", &student.semester[currentSemester].subjectCount);
+                getchar();
+
                 printf("\n");
-                
                 printf("Subject\t\tUnits\tGrade\n");
-                for (int i = 0; i < student.semester[student.semesterCount].subjectCount; i++)
+                for (i = 0; i < student.semester[currentSemester].subjectCount; i++)
                 {
                     printf("\n");
                 }
 
+                printf("\n");
                 printf("Please Choose Option => \n");
                 printf("\t1 - Enter Semestral Data\n");
                 printf("\tM - Exit to Main Menu\n");
+
+                for (i = 0; i < student.semester[currentSemester].subjectCount; i++)
+                {
+                    moveToPosition(9 + i, 1);
+                    fgets(student.semester[currentSemester].subject[i].name, 20, stdin);
+                    cleanString(student.semester[currentSemester].subject[i].name);
+
+                    moveToPosition(9 + i, 17);
+                    scanf("%f", &student.semester[currentSemester].subject[i].unit);
+                    getchar();
+
+                    moveToPosition(9 + i, 25);
+                    scanf("%f", &student.semester[currentSemester].subject[i].grade);
+                    getchar();
+                }
+
+                moveToPosition(10 + student.semester[currentSemester].subjectCount, 25);
+                scanf(" %c", &option);
+                getchar();
                 break;
             
             case '2':
@@ -223,6 +249,34 @@ int main(void)
                 printf("\t3 - Generate Full Transcirpt\n");
                 printf("\t4 - Generate Full Checklist\n");
                 printf("\tX - Exit Program\n");
+                
+                moveToPosition(5, 22);
+                fgets(student.lastName, 20, stdin);
+                cleanString(student.lastName);
+
+                moveToPosition(6, 23);
+                fgets(student.firstName, 20, stdin);
+                cleanString(student.firstName);
+
+                moveToPosition(7, 24);
+                fgets(student.middleName, 20, stdin);
+                cleanString(student.middleName);
+
+                moveToPosition(8, 19);
+                scanf("%i", &student.studentNumber);
+                getchar();
+
+                moveToPosition(9, 11);
+                fgets(student.course, 30, stdin);
+                cleanString(student.course);
+
+                moveToPosition(10, 15);
+                scanf("%i", &student.year);
+                getchar();
+
+                moveToPosition(12, 25);
+                scanf(" %c", &option);
+                getchar();
                 break;
 
             case 'R':
@@ -232,19 +286,18 @@ int main(void)
                 printf("Please Choose Option => \n");
                 printf("\tM - Exit to Main Menu\n");
                 printf("\tX - Exit Program\n");
+
+                moveToPosition(16 + student.semester[sem].subjectCount, 25);
+                scanf(" %c", &option);
+                getchar();
                 break;
 
             default: 
                 printf("Invalid Input\n");
         }
-
-        // *temp* prompt user to enter the next menu
-        printf("Please Choose Option => ");
-        scanf(" %c", &option);
-        
     } 
     while (option != 'X');
     
-
+    clearScreen();
     return 0;
 }
