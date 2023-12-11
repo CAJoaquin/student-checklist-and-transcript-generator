@@ -140,10 +140,10 @@ int main(void)
     Student student;
     
     //declare variables
-    char option = 'M';
+    char option = 'M', semOfYear;
     student.semesterCount = 0;
-    int sem = 0;
-    int i, j;
+    int semester = 0;
+    int i, j, yearStart, yearEnd;
 
     do
     {
@@ -221,6 +221,33 @@ int main(void)
                 printf("Please Choose Option => \n");
                 printf("\t1 - Generate Report\n");
                 printf("\tM - Exit to Main Menu\n");
+
+                moveToPosition(5, 14);
+                scanf("%d", &yearStart);
+                getchar();
+
+                moveToPosition(5, 22);
+                scanf("%d", &yearEnd);
+                getchar();
+
+                moveToPosition(6, 21);
+                scanf(" %c", &semOfYear);
+                getchar();
+
+                for (i = 0; i  < student.semesterCount; i++)
+                {
+                    if (yearStart == student.semester[i].yearStart && yearEnd == student.semester[i].yearEnd && semOfYear == student.semester[i].sem)
+                    {
+                        semester = i;
+
+                        moveToPosition(8, 25);
+                        scanf(" %c", &option);
+                        getchar();
+                        break;
+                    }
+                }
+
+                printf("ERROR: Can't find semester requested");
                 break;
             
             case '3':
@@ -280,14 +307,13 @@ int main(void)
                 break;
 
             case 'R':
-                sem = 0; // *temp*
-                printReport(student, sem);
+                printReport(student, semester);
                 printf("\n");
                 printf("Please Choose Option => \n");
                 printf("\tM - Exit to Main Menu\n");
                 printf("\tX - Exit Program\n");
 
-                moveToPosition(16 + student.semester[sem].subjectCount, 25);
+                moveToPosition(16 + student.semester[semester].subjectCount, 25);
                 scanf(" %c", &option);
                 getchar();
                 break;
