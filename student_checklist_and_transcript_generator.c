@@ -15,6 +15,7 @@ Instructions:
  
 **********************************************************************************************/
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // subject struct
@@ -22,7 +23,7 @@ typedef struct
 {
     char name[20];
     float unit;
-    float grade;
+    char grade[6];
 } Subject;
 
 // semester struct
@@ -72,14 +73,37 @@ void cleanString(char *c)
 	}
 }
 
+// function to check if the entered grade is valid
+int isValidGrade(const char *grade)
+{
+    // Check for numerical grades
+    float numInput = atof(grade);
+    if ((numInput >= 1.00 && numInput <= 3.00 && ((int)(numInput * 100) % 25 == 0)) || numInput == 4.00 || numInput == 5.00) 
+    {
+        return 1; // Valid numerical grade
+    }
+
+    // Check for non-numerical grades
+    if (strcmp(grade, "INC") == 0 || strcmp(grade, "DRP") == 0) 
+    {
+        return 1; // Valid non-numerical grade
+    }
+
+    return 0; // Invalid grade
+}
+
 // function to calculate student GWA
-float getGWA(Student student, int sem)
+float getGWA(Student student, int semester)
 {
     double totalUnit = 0, totalGradePoint = 0;
-    for (int i = 0; i < student.semester[sem].subjectCount; i++)
+    for (int i = 0; i < student.semester[semester].subjectCount; i++)
     {
-        totalUnit += student.semester[sem].subject[i].unit;
-        totalGradePoint += (student.semester[sem].subject[i].grade * student.semester[sem].subject[i].unit);
+        float grade = atof(student.semester[semester].subject[i].grade);
+        if ((grade >= 1.00 && grade <= 3.00 && ((int)(grade * 100) % 25 == 0)) || grade == 4.00 || grade == 5.00)
+        {
+            totalUnit += student.semester[semester].subject[i].unit;
+            totalGradePoint += (grade * student.semester[semester].subject[i].unit);
+        }
     }
     return totalGradePoint / totalUnit;
 }
@@ -87,6 +111,7 @@ float getGWA(Student student, int sem)
 // function to display Semestral Grade Report
 void printReport(Student student, int semester)
 {
+    float numGrade;
     printf("\tUNIVERSITY OF THE PHILIPPINES BAGUIO\n");
     printf("\n");
     printf("\t\tSEMESTRAL GRADE REPORT\n");
@@ -102,17 +127,40 @@ void printReport(Student student, int semester)
     printf("Subject\t\t\tUnits\tGrade\n");
     for (int i = 0; i < student.semester[semester].subjectCount; i++)
     {
+        numGrade = atof(student.semester[semester].subject[i].grade);
+
         if (strlen(student.semester[semester].subject[i].name) < 8)
         {
-            printf("%s\t\t\t%.2f\t%.2f\n", student.semester[semester].subject[i].name, student.semester[semester].subject[i].unit, student.semester[semester].subject[i].grade);
+            if (strcmp(student.semester[semester].subject[i].grade, "INC") == 0 || strcmp(student.semester[semester].subject[i].grade, "DRP") == 0)
+            {
+                printf("%s\t\t\t%.2f\t%s\n", student.semester[semester].subject[i].name, student.semester[semester].subject[i].unit, student.semester[semester].subject[i].grade);
+            }
+            else
+            {
+                printf("%s\t\t\t%.2f\t%.2f\n", student.semester[semester].subject[i].name, student.semester[semester].subject[i].unit, numGrade);
+            }
         }
         else if (strlen(student.semester[semester].subject[i].name) < 16)
         {
-            printf("%s\t\t%.2f\t%.2f\n", student.semester[semester].subject[i].name, student.semester[semester].subject[i].unit, student.semester[semester].subject[i].grade);
+            if (strcmp(student.semester[semester].subject[i].grade, "INC") == 0 || strcmp(student.semester[semester].subject[i].grade, "DRP") == 0)
+            {
+                printf("%s\t\t%.2f\t%s\n", student.semester[semester].subject[i].name, student.semester[semester].subject[i].unit, student.semester[semester].subject[i].grade);
+            }
+            else
+            {
+                printf("%s\t\t%.2f\t%.2f\n", student.semester[semester].subject[i].name, student.semester[semester].subject[i].unit, numGrade);
+            }
         }
         else
         {
-            printf("%s\t%.2f\t%.2f\n", student.semester[semester].subject[i].name, student.semester[semester].subject[i].unit, student.semester[semester].subject[i].grade);
+            if (strcmp(student.semester[semester].subject[i].grade, "INC") == 0 || strcmp(student.semester[semester].subject[i].grade, "DRP") == 0)
+            {
+                printf("%s\t%.2f\t%s\n", student.semester[semester].subject[i].name, student.semester[semester].subject[i].unit, student.semester[semester].subject[i].grade);
+            }
+            else
+            {
+                printf("%s\t%.2f\t%.2f\n", student.semester[semester].subject[i].name, student.semester[semester].subject[i].unit, numGrade);
+            }
         }
     }
 
@@ -126,11 +174,13 @@ void printReport(Student student, int semester)
     {
         printf("CONGRATULATIONS!\n");
         printf("You have qualified as a University Scholar.\n");
+        printf("\n");
     }
     else if (gwa <= 1.75) 
     {
         printf("CONGRATULATIONS!\n");
         printf("You have qualified as a College Scholar.\n");
+        printf("\n");
     }
 }
 
@@ -143,7 +193,7 @@ int main(void)
     char option = '0', semOfYear;
     student.semesterCount = 0;
     int semester = 0;
-    int i, j, yearStart, yearEnd, congratulatory;
+    int i, j, yearStart, yearEnd, congratulatory, foundSemester;
 
     do
     {
@@ -208,7 +258,7 @@ int main(void)
                     }
                 }
                 while (option != '1' && option != '2' && option != '3' && option != '4' && option != 'X');
-                
+
                 break;
             
             // Screen 1 - Enter Semestral Data
@@ -260,9 +310,22 @@ int main(void)
                     scanf("%f", &student.semester[currentSemester].subject[i].unit);
                     getchar();
 
-                    moveToPosition(9 + i, 25);
-                    scanf("%f", &student.semester[currentSemester].subject[i].grade);
-                    getchar();
+                    do 
+                    {
+                        moveToPosition(9 + i, 25);
+                        fgets(student.semester[currentSemester].subject[i].grade, 6, stdin);
+                        cleanString(student.semester[currentSemester].subject[i].grade);
+                        if (isValidGrade(student.semester[currentSemester].subject[i].grade) == 0)
+                        {
+                            moveToPosition(9 + i, 25);
+                            printf("                                                      ");
+                            moveToPosition(14 + student.semester[currentSemester].subjectCount, 1);
+                            printf("Error: Invalid Input. Please enter a valid grade.");
+                        }
+                    }
+                    while (isValidGrade(student.semester[currentSemester].subject[i].grade) == 0);
+                    moveToPosition(14 + student.semester[currentSemester].subjectCount, 1);
+                    printf("                                                      ");
                 }
                 
                 do
@@ -281,6 +344,8 @@ int main(void)
             
             // Screen 2 - Generate GWA
             case '2':
+                foundSemester = 0;
+                
                 printf("\tStudent Checklist and Transcript Generator\n");
                 printf("\t\tGenerate Semestral GWA Report\n");
                 printf("\n");
@@ -327,38 +392,80 @@ int main(void)
                         {
                             option = 'R';
                         }
-
-                        break;
+                        foundSemester = 1;
                     }
                 }
 
-                moveToPosition(9, 13);
-                printf("Enter Semestral Data\n");
-                moveToPosition(12, 1);
-                printf("ERROR: Can't find semester requested\n");
-                do
+                if (foundSemester == 0)
                 {
-                    moveToPosition(8, 25);
-                    scanf(" %c", &option);
-                    getchar();
-                    if (option != '1' && option != 'M')
+                    moveToPosition(9, 13);
+                    printf("Enter Semestral Data\n");
+                    moveToPosition(12, 1);
+                    printf("ERROR: Can't find semester requested\n");
+                    do
                     {
-                        moveToPosition(12, 1);
-                        printf("Error: Invalid Input. Please enter a valid option.");
+                        moveToPosition(8, 25);
+                        scanf(" %c", &option);
+                        getchar();
+                        if (option != '1' && option != 'M')
+                        {
+                            moveToPosition(12, 1);
+                            printf("Error: Invalid Input. Please enter a valid option.");
+                        }
                     }
+                    while (option != '1' && option != 'M');
                 }
-                while (option != '1' && option != 'M');
-                
+
                 break;
             
             // Screen 3 - Generate Full Transcript
             case '3':
-                printf("Case 3\n");
+                printf("UNDER CONSTRUCTION\n");
+                printf("\n");
+                printf("Please Choose Option => \n");
+                printf("\t1 - Enter Semestral Data\n");
+                printf("\t2 - Generate Semestral GWA Report\n");
+                printf("\t3 - Generate Full Transcirpt\n");
+                printf("\t4 - Generate Full Checklist\n");
+                printf("\tX - Exit Program\n");
+
+                do
+                {
+                    moveToPosition(3, 25);
+                    scanf(" %c", &option);
+                    getchar();
+                    if (option != '1' && option != '2' && option != '3' && option != '4' && option != 'X')
+                    {
+                        moveToPosition(19, 1);
+                        printf("Error: Invalid Input. Please enter a valid option.");
+                    }
+                }
+                while (option != '1' && option != '2' && option != '3' && option != '4' && option != 'X');
                 break;
 
             // Screen 4 - Generate Full Checklist
             case '4':
-                printf("Case 4\n");
+                printf("UNDER CONSTRUCTION\n");
+                printf("\n");
+                printf("Please Choose Option => \n");
+                printf("\t1 - Enter Semestral Data\n");
+                printf("\t2 - Generate Semestral GWA Report\n");
+                printf("\t3 - Generate Full Transcirpt\n");
+                printf("\t4 - Generate Full Checklist\n");
+                printf("\tX - Exit Program\n");
+
+                do
+                {
+                    moveToPosition(3, 25);
+                    scanf(" %c", &option);
+                    getchar();
+                    if (option != '1' && option != '2' && option != '3' && option != '4' && option != 'X')
+                    {
+                        moveToPosition(19, 1);
+                        printf("Error: Invalid Input. Please enter a valid option.");
+                    }
+                }
+                while (option != '1' && option != '2' && option != '3' && option != '4' && option != 'X');
                 break;
 
             // Screen M - Main Menu
@@ -398,7 +505,6 @@ int main(void)
             // Screen R - Semestral Grade Report
             case 'R':
                 printReport(student, semester);
-                printf("\n");
                 printf("Please Choose Option => \n");
                 printf("\tM - Exit to Main Menu\n");
                 printf("\tX - Exit Program\n");
