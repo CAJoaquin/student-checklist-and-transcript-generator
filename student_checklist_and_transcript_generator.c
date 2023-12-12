@@ -58,17 +58,18 @@ void clearScreen()
 // function to manipulate cursor position
 void moveToPosition(int line, int column)
 {
-    printf("\033[%i;%iH", line, column);
+    printf("\033[%i;%iH", line, column); // ANSI escape codes to manipulate cursor position
 }
 
-// function to remove next line
+// function to remove next line from string
 void cleanString(char *c)
 {
+    // iterate through the whole string
 	for (int i = 0; c[i] != '\0'; i++)
 	{
 		if (c[i] == '\n')
 		{
-			c[i] = '\0';
+			c[i] = '\0'; // remove '\n'
 		}
 	}
 }
@@ -95,27 +96,40 @@ int isValidGrade(const char *grade)
 // function to calculate student GWA
 float getGWA(Student student, int semester)
 {
+    // declare variables
     double totalUnit = 0, totalGradePoint = 0;
+    float grade;
+
+    // iterate through all subjects in the semester
     for (int i = 0; i < student.semester[semester].subjectCount; i++)
     {
-        float grade = atof(student.semester[semester].subject[i].grade);
+        // store float value of string
+        grade = atof(student.semester[semester].subject[i].grade);
+
+        // if grade is numeric calculate GWA
         if ((grade >= 1.00 && grade <= 3.00 && ((int)(grade * 100) % 25 == 0)) || grade == 4.00 || grade == 5.00)
         {
             totalUnit += student.semester[semester].subject[i].unit;
             totalGradePoint += (grade * student.semester[semester].subject[i].unit);
         }
     }
-    return totalGradePoint / totalUnit;
+    return totalGradePoint / totalUnit;  // return calculated GWA
 }
 
 // function to display Semestral Grade Report
 void printReport(Student student, int semester)
 {
+    // declare variable
     float numGrade;
+    double gwa;
+
+    // display header
     printf("\tUNIVERSITY OF THE PHILIPPINES BAGUIO\n");
     printf("\n");
     printf("\t\tSEMESTRAL GRADE REPORT\n");
     printf("\n");
+
+    // display student data
     printf("Name: %s, %s, %s\n", student.lastName, student.firstName, student.middleName);
     printf("Student Number: %i\n", student.studentNumber);
     printf("Course: %s\n", student.course);
@@ -124,52 +138,60 @@ void printReport(Student student, int semester)
     printf("Semester: %c\n", student.semester[semester].sem);
     printf("\n");
     
+    // diplay subject data
     printf("Subject\t\t\tUnits\tGrade\n");
     for (int i = 0; i < student.semester[semester].subjectCount; i++)
     {
+        // store float value of string
         numGrade = atof(student.semester[semester].subject[i].grade);
 
+        // if statement to determine '\t' for formatting
         if (strlen(student.semester[semester].subject[i].name) < 8)
         {
+            // if grade is non numeric
             if (strcmp(student.semester[semester].subject[i].grade, "INC") == 0 || strcmp(student.semester[semester].subject[i].grade, "DRP") == 0)
             {
                 printf("%s\t\t\t%.2f\t%s\n", student.semester[semester].subject[i].name, student.semester[semester].subject[i].unit, student.semester[semester].subject[i].grade);
             }
-            else
+            else // grade is numeric
             {
                 printf("%s\t\t\t%.2f\t%.2f\n", student.semester[semester].subject[i].name, student.semester[semester].subject[i].unit, numGrade);
             }
         }
         else if (strlen(student.semester[semester].subject[i].name) < 16)
         {
+            // if grade is non numeric
             if (strcmp(student.semester[semester].subject[i].grade, "INC") == 0 || strcmp(student.semester[semester].subject[i].grade, "DRP") == 0)
             {
                 printf("%s\t\t%.2f\t%s\n", student.semester[semester].subject[i].name, student.semester[semester].subject[i].unit, student.semester[semester].subject[i].grade);
             }
-            else
+            else // grade is numeric
             {
                 printf("%s\t\t%.2f\t%.2f\n", student.semester[semester].subject[i].name, student.semester[semester].subject[i].unit, numGrade);
             }
         }
         else
         {
+            // if grade is non numeric
             if (strcmp(student.semester[semester].subject[i].grade, "INC") == 0 || strcmp(student.semester[semester].subject[i].grade, "DRP") == 0)
             {
                 printf("%s\t%.2f\t%s\n", student.semester[semester].subject[i].name, student.semester[semester].subject[i].unit, student.semester[semester].subject[i].grade);
             }
-            else
+            else // grade is numeric
             {
                 printf("%s\t%.2f\t%.2f\n", student.semester[semester].subject[i].name, student.semester[semester].subject[i].unit, numGrade);
             }
         }
     }
 
-    double gwa = getGWA(student, semester);
+    // get semester GWA
+    gwa = getGWA(student, semester);
 
     printf("\n");
-    printf("GWA: %.2f\n", gwa);
+    printf("GWA: %.2f\n", gwa); // display GWA
     printf("\n");
     
+    // display congratulatory message
     if (gwa <= 1.45) 
     {
         printf("CONGRATULATIONS!\n");
@@ -184,6 +206,7 @@ void printReport(Student student, int semester)
     }
 }
 
+// main function
 int main(void) 
 {
     // declare student
@@ -193,8 +216,9 @@ int main(void)
     char option = '0', semOfYear;
     student.semesterCount = 0;
     int semester = 0;
-    int i, j, yearStart, yearEnd, congratulatory, foundSemester;
+    int i, j, yearStart, yearEnd, congratulatory, foundSemester, currentSemester;
 
+    // do while loop until user enter 'X'
     do
     {
         // clear screen
@@ -204,6 +228,7 @@ int main(void)
         {
             // Screen 0 - Main Menu and Student Data
             case '0':
+                // diplay user interface
                 printf("\tStudent Checklist and Transcript Generator\n");
                 printf("\t\t\tMain Menu\n");
                 printf("\n");
@@ -222,6 +247,7 @@ int main(void)
                 printf("\t4 - Generate Full Checklist\n");
                 printf("\tX - Exit Program\n");
                 
+                // prompt user for student data
                 moveToPosition(5, 22);
                 fgets(student.lastName, 20, stdin);
                 cleanString(student.lastName);
@@ -246,6 +272,7 @@ int main(void)
                 scanf("%i", &student.year);
                 getchar();
 
+                // prompt user for next step
                 do
                 {
                     moveToPosition(12, 25);
@@ -264,7 +291,9 @@ int main(void)
             // Screen 1 - Enter Semestral Data
             case '1':
                 student.semesterCount ++;
-                int currentSemester = student.semesterCount - 1;
+                currentSemester = student.semesterCount - 1;
+
+                // display user interface
                 printf("\tStudent Checklist and Transcript Generator\n");
                 printf("\t\tEnter Semestral Data\n");
                 printf("\n");
@@ -272,6 +301,7 @@ int main(void)
                 printf("Enter Academic Year => 20   to 20  \n");
                 printf("Enter Total Number of Subjects => \n");
 
+                // prompt user for semestral data
                 moveToPosition(4, 31);
                 scanf("%c", &student.semester[currentSemester].sem);
                 getchar();
@@ -288,6 +318,7 @@ int main(void)
                 scanf("%i", &student.semester[currentSemester].subjectCount);
                 getchar();
 
+                // display semestral data user interface
                 printf("\n");
                 printf("Subject\t\tUnits\tGrade\n");
                 for (i = 0; i < student.semester[currentSemester].subjectCount; i++)
@@ -295,11 +326,13 @@ int main(void)
                     printf("\n");
                 }
 
+                // display menu
                 printf("\n");
                 printf("Please Choose Option => \n");
                 printf("\t1 - Enter Semestral Data\n");
                 printf("\tM - Exit to Main Menu\n");
 
+                // prompt user for subject data
                 for (i = 0; i < student.semester[currentSemester].subjectCount; i++)
                 {
                     moveToPosition(9 + i, 1);
@@ -328,6 +361,7 @@ int main(void)
                     printf("                                                      ");
                 }
                 
+                // prompt user for next step
                 do
                 {
                     moveToPosition(10 + student.semester[currentSemester].subjectCount, 25);
@@ -344,8 +378,10 @@ int main(void)
             
             // Screen 2 - Generate GWA
             case '2':
+                // initialize flag variable to false
                 foundSemester = 0;
                 
+                // display user interface
                 printf("\tStudent Checklist and Transcript Generator\n");
                 printf("\t\tGenerate Semestral GWA Report\n");
                 printf("\n");
@@ -356,7 +392,8 @@ int main(void)
                 printf("Please Choose Option => \n");
                 printf("\t1 - Generate Report\n");
                 printf("\tM - Exit to Main Menu\n");
-
+                
+                // prompt user for semester information
                 moveToPosition(5, 14);
                 scanf("%d", &yearStart);
                 getchar();
@@ -369,12 +406,16 @@ int main(void)
                 scanf(" %c", &semOfYear);
                 getchar();
 
+                // iterate through all semester
                 for (i = 0; i  < student.semesterCount; i++)
                 {
+                    // if user input match semester
                     if (yearStart == student.semester[i].yearStart && yearEnd == student.semester[i].yearEnd && semOfYear == student.semester[i].sem)
                     {
+                        // initialize semester to match student input
                         semester = i;
 
+                        // prompt user for next step
                         do
                         {
                             moveToPosition(8, 25);
@@ -390,18 +431,24 @@ int main(void)
 
                         if (option == '1')
                         {
-                            option = 'R';
+                            option = 'R'; // initialize proper option
                         }
+
+                        // update flag variable to true
                         foundSemester = 1;
                     }
                 }
-
+                
+                // if semester not found
                 if (foundSemester == 0)
                 {
+                    // update user interface
                     moveToPosition(9, 13);
                     printf("Enter Semestral Data\n");
                     moveToPosition(12, 1);
                     printf("ERROR: Can't find semester requested\n");
+
+                    // prompt user for next step
                     do
                     {
                         moveToPosition(8, 25);
@@ -415,11 +462,11 @@ int main(void)
                     }
                     while (option != '1' && option != 'M');
                 }
-
                 break;
             
             // Screen 3 - Generate Full Transcript
             case '3':
+                // print user unterface
                 printf("UNDER CONSTRUCTION\n");
                 printf("\n");
                 printf("Please Choose Option => \n");
@@ -429,6 +476,7 @@ int main(void)
                 printf("\t4 - Generate Full Checklist\n");
                 printf("\tX - Exit Program\n");
 
+                // prompt user for next step
                 do
                 {
                     moveToPosition(3, 25);
@@ -445,6 +493,7 @@ int main(void)
 
             // Screen 4 - Generate Full Checklist
             case '4':
+                // print user interface
                 printf("UNDER CONSTRUCTION\n");
                 printf("\n");
                 printf("Please Choose Option => \n");
@@ -454,6 +503,7 @@ int main(void)
                 printf("\t4 - Generate Full Checklist\n");
                 printf("\tX - Exit Program\n");
 
+                // prompt user for next step
                 do
                 {
                     moveToPosition(3, 25);
@@ -470,6 +520,7 @@ int main(void)
 
             // Screen M - Main Menu
             case 'M':
+                // print user interface with student data
                 printf("\tStudent Checklist and Transcript Generator\n");
                 printf("\t\t\tMain Menu\n");
                 printf("\n");
@@ -488,6 +539,7 @@ int main(void)
                 printf("\t4 - Generate Full Checklist\n");
                 printf("\tX - Exit Program\n");
 
+                // prompt user for next step
                 do
                 {
                     moveToPosition(12, 25);
@@ -504,11 +556,13 @@ int main(void)
           
             // Screen R - Semestral Grade Report
             case 'R':
+                // displat semestral grade report
                 printReport(student, semester);
                 printf("Please Choose Option => \n");
                 printf("\tM - Exit to Main Menu\n");
                 printf("\tX - Exit Program\n");
 
+                // adjust cursor manipulation if with honors
                 double gwa = getGWA(student, semester);
                 congratulatory = 0;
                 if (gwa <= 1.75) 
@@ -516,6 +570,7 @@ int main(void)
                     congratulatory = 3;
                 }
 
+                // prompt user for next step
                 do
                 {
                     moveToPosition(16 + student.semester[semester].subjectCount + congratulatory, 25);
@@ -532,9 +587,9 @@ int main(void)
 
             // default
             default: 
-                printf("Invalid Input\n");
+                option = 'M';
         }
-    } 
+    }
     while (option != 'X');
     
     clearScreen();
